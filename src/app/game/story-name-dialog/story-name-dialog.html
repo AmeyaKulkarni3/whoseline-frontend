@@ -1,0 +1,30 @@
+<h2 mat-dialog-title>{{ data.isStarting ? 'Name Your Story' : 'Rename Your Story' }}</h2>
+
+<mat-dialog-content>
+  <p class="mb-4 text-sm text-gray-400">
+    Give your group's story a title. You can change it while the game is in progress.
+  </p>
+  <mat-form-field appearance="outline" class="w-full">
+    <mat-label>Story name</mat-label>
+    <input
+      matInput
+      [(ngModel)]="storyName"
+      maxlength="100"
+      required
+      cdkFocusInitial
+      placeholder="e.g. The Mystery of the Missing Sandwich"
+      (keydown.enter)="save()"
+    />
+    <mat-hint align="end">{{ storyName.length }}/100</mat-hint>
+  </mat-form-field>
+  @if (validationError) {
+    <p class="text-sm text-red-400">{{ validationError }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancel()">Cancel</button>
+  <button mat-flat-button type="button" (click)="save()">
+    {{ data.isStarting ? 'Save & Start Game' : 'Save Title' }}
+  </button>
+</mat-dialog-actions>

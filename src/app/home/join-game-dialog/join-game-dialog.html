@@ -1,0 +1,38 @@
+<div class="w-full max-w-sm px-4 py-4">
+  <h2 class="text-xl font-semibold tracking-tight">Join A Game</h2>
+  <p class="mt-2 text-sm opacity-60">Enter the game code shared by your friend.</p>
+  <mat-form-field appearance="outline" class="mt-6 w-full">
+    <mat-label>Game Code</mat-label>
+    <input
+      matInput
+      maxlength="6"
+      autocomplete="off"
+      [ngModel]="code()"
+      (ngModelChange)="code.set($event.toUpperCase())"
+      (keyup.enter)="joinGame()"
+      [disabled]="joining()"
+      placeholder="ABC123"
+    />
+  </mat-form-field>
+  @if (errorMessage(); as error) {
+    <p class="mt-1 text-sm text-red-400">
+      {{ error }}
+    </p>
+  }
+  <div class="mt-4 flex justify-end gap-3">
+    <button type="button" mat-button [disabled]="joining()" (click)="cancel()">Cancel</button>
+
+    <button
+      type="button"
+      mat-flat-button
+      [disabled]="code().trim().length !== 6 || joining()"
+      (click)="joinGame()"
+    >
+      @if (joining()) {
+        Joining...
+      } @else {
+        Join Game
+      }
+    </button>
+  </div>
+</div>

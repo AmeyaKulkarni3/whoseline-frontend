@@ -1,0 +1,125 @@
+<div class="mx-auto max-w-lg pt-12">
+  <div class="pt-6">
+    <h1 class="text-3xl font-semibold tracking-tight">Welcome back, {{ firstName() }}</h1>
+
+    <p class="mt-2 text-base opacity-60">What do you want to do?</p>
+  </div>
+
+  <div class="mt-8 space-y-3">
+    @if (activeGame(); as game) {
+      <button
+        type="button"
+        class="w-full rounded-xl border border-(--mat-sys-primary)/30 bg-white/3 px-5 py-4 text-left transition hover:bg-white/6"
+        (click)="openActiveGame()"
+      >
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-base font-semibold text-(--mat-sys-primary)">Your Active Game</div>
+            <div class="mt-1 text-sm opacity-60">{{ game.code }} · {{ game.status }}</div>
+          </div>
+          <span class="text-xl opacity-40">›</span>
+        </div>
+      </button>
+    }
+    <button
+      type="button"
+      class="w-full rounded-xl border border-white/10 bg-white/3 px-5 py-4 text-left transition hover:bg-white/6"
+      [disabled]="!!activeGame() || creatingGame()"
+      (click)="createGame()"
+    >
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-base font-semibold text-(--mat-sys-primary)">
+            @if (creatingGame()) {
+              Creating Game...
+            } @else {
+              Create a Game
+            }
+          </div>
+
+          <div class="mt-1 text-sm opacity-60">Start a new game with friends</div>
+        </div>
+
+        <span class="text-xl opacity-40"> › </span>
+      </div>
+    </button>
+
+    <button
+      type="button"
+      class="w-full rounded-xl border border-white/10 bg-white/3 px-5 py-4 text-left transition hover:bg-white/6"
+      [disabled]="!!activeGame()"
+      (click)="openJoinGame()"
+    >
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-base font-semibold text-(--mat-sys-primary)">Join a Game</div>
+
+          <div class="mt-1 text-sm opacity-60">Enter a friend's game code</div>
+        </div>
+
+        <span class="text-xl opacity-40"> › </span>
+      </div>
+    </button>
+  </div>
+  <!-- Past Games -->
+  <section class="mt-10">
+    <h2 class="text-xl font-semibold tracking-tight">Past Games</h2>
+    <p class="mt-1 text-sm opacity-60">Revisit the stories you've created together.</p>
+
+    @if (loadingPastGames()) {
+      <p class="mt-4 text-sm opacity-60">Loading past games...</p>
+    } @else if (pastGamesError()) {
+      <div class="mt-4">
+        <p class="text-sm text-red-400">{{ pastGamesError() }}</p>
+        <button mat-button type="button" (click)="loadPastGames()">Try Again</button>
+      </div>
+    } @else if (pastGames().length === 0) {
+      <div class="mt-4 rounded-xl border border-white/10 px-5 py-6 text-center">
+        <p class="text-sm opacity-60">No past games yet.</p>
+        <p class="mt-1 text-sm opacity-40">Your completed stories will appear here.</p>
+      </div>
+    } @else {
+      <div class="mt-4 space-y-3">
+        @for (pastGame of pastGames(); track pastGame.id) {
+          <button
+            type="button"
+            class="w-full rounded-xl border border-white/10 bg-white/3 px-5 py-4 text-left transition hover:bg-white/6"
+            (click)="openPastGame(pastGame)"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <div class="truncate text-base font-semibold">
+                  {{ pastGame.storyName || 'Untitled Story' }}
+                </div>
+
+                <div class="mt-1 text-sm opacity-60">
+                  {{ pastGame.code }}
+                  · {{ pastGame.participantCount }}
+                  {{ pastGame.participantCount === 1 ? 'player' : 'players' }}
+                </div>
+
+                <div class="mt-2 text-xs opacity-50">
+                  {{ formatGameDate(pastGame.completedAt) }}
+                </div>
+              </div>
+
+              <div class="flex shrink-0 items-center gap-2">
+                <span
+                  class="rounded-full px-2 py-1 text-xs"
+                  [class.bg-green-500/10]="pastGame.status === 'COMPLETED'"
+                  [class.text-green-400]="pastGame.status === 'COMPLETED'"
+                  [class.bg-red-500/10]="pastGame.status === 'CANCELLED'"
+                  [class.text-red-400]="pastGame.status === 'CANCELLED'"
+                >
+                  {{ pastGame.status === 'COMPLETED' ? 'Completed' : 'Cancelled' }}
+                </span>
+
+                <span class="text-xl opacity-40">›</span>
+              </div>
+            </div>
+          </button>
+        }
+      </div>
+    }
+  </section>
+</div>

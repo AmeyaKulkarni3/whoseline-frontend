@@ -1,0 +1,350 @@
+<div class="mx-auto max-w-lg px-4 pb-10">
+  <!-- Game heading -->
+  <div class="pt-6">
+    <p class="text-center text-sm font-medium uppercase tracking-[0.2em] text-white/45">
+      @if (game()?.status === 'IN_PROGRESS') {
+        The Story
+      } @else {
+        Game Lobby
+      }
+    </p>
+
+    <!-- Game code -->
+    <div class="mt-5 flex items-center justify-between rounded-xl border border-white/10 px-5 py-4">
+      <div>
+        <p class="text-xs uppercase tracking-widest text-white/40">Game Code</p>
+
+        @if (game(); as currentGame) {
+          <p class="mt-1 text-3xl font-bold tracking-[0.15em]">
+            {{ currentGame.code }}
+          </p>
+        }
+      </div>
+
+      <button
+        type="button"
+        class="flex items-center gap-1 text-sm font-medium text-(--mat-sys-primary) transition-opacity hover:opacity-75"
+        (click)="copyGameCode()"
+      >
+        @if (copied()) {
+          <mat-icon class="text-base!">check</mat-icon>
+          Copied
+        } @else {
+          <mat-icon class="text-base!">content_copy</mat-icon>
+          Copy
+        }
+      </button>
+    </div>
+
+    <!-- Game status -->
+    @if (game(); as currentGame) {
+      <div class="mt-5 flex items-center gap-2">
+        <span class="h-2 w-2 rounded-full bg-(--mat-sys-primary)"></span>
+        <span class="text-sm font-medium">
+          {{ currentGame.status }}
+        </span>
+      </div>
+
+      @if (currentGame.status === 'WAITING') {
+        <p class="mt-1 text-sm text-white/50">Waiting for players to join</p>
+      } @else if (currentGame.status === 'IN_PROGRESS') {
+        <p class="mt-1 text-sm text-white/50">Game in progress</p>
+      } @else if (currentGame.status === 'COMPLETED') {
+        <p class="mt-1 text-sm text-white/50">Game completed</p>
+      } @else if (currentGame.status === 'CANCELLED') {
+        <p class="mt-1 text-sm text-white/50">Game cancelled</p>
+      }
+    }
+  </div>
+
+  <!-- Loading and errors -->
+  @if (loading()) {
+    <p class="mt-8 text-center text-sm text-white/50">Loading game...</p>
+  }
+
+  @if (error()) {
+    <p class="mt-8 text-center text-sm text-red-400">
+      {{ error() }}
+    </p>
+  }
+
+  @if (startError()) {
+    <p class="mt-4 text-sm text-red-400">
+      {{ startError() }}
+    </p>
+  }
+
+  <!-- Players -->
+  @if (game(); as currentGame) {
+    <section class="mt-10">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold">Players</h2>
+        <span class="text-sm text-white/45"> {{ currentGame.players.length }} / 5 </span>
+      </div>
+
+      <div class="mt-4">
+        @for (player of currentGame.players; track player.userId) {
+          <div class="flex items-center gap-3 border-b border-white/8 py-3">
+            @if (player.avatarUrl) {
+              <img
+                [src]="player.avatarUrl"
+                [alt]="player.displayName"
+                class="h-10 w-10 rounded-full object-cover"
+              />
+            } @else {
+              <div
+                class="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-sm font-semibold"
+              >
+                {{ player.displayName.charAt(0) }}
+              </div>
+            }
+
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm font-medium">
+                {{ player.displayName }}
+              </p>
+
+              @if (player.userId === currentUser()?.id) {
+                <p class="mt-0.5 text-xs text-white/40">You</p>
+              }
+
+              @if (gamePlay(); as play) {
+                @if (
+                  currentGame.status === 'IN_PROGRESS' && play.currentTurnUserId === player.userId
+                ) {
+                  <p class="mt-0.5 text-xs text-(--mat-sys-primary)">Current turn</p>
+                }
+              }
+            </div>
+
+            @if (currentGame.ownerUserId === player.userId) {
+              <span class="text-xs text-white/40">Host</span>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Gameplay and story history -->
+  @if (game(); as currentGame) {
+    @if (currentGame.status === 'IN_PROGRESS' || currentGame.status === 'COMPLETED') {
+      <section class="mt-10">
+        @if (gamePlay(); as play) {
+          <!-- Current round summary -->
+          @if (currentGame.status === 'IN_PROGRESS') {
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-medium uppercase tracking-widest text-white/40">
+                  Current round
+                </p>
+
+                <h2 class="mt-1 text-2xl font-bold">
+                  {{ play.currentRound ?? '—' }}
+                  <span class="text-base font-normal text-white/40">
+                    / {{ play.totalRounds }}
+                  </span>
+                </h2>
+              </div>
+
+              <span class="rounded-md border border-white/10 px-3 py-2 text-xs text-white/60">
+                {{ currentRoundSentenceCount() }}
+                sentence{{ currentRoundSentenceCount() === 1 ? '' : 's' }}
+              </span>
+            </div>
+
+            <p class="mt-2 text-sm text-white/50">Build the story one sentence at a time.</p>
+
+            <!-- Turn status -->
+            <div class="mt-6 border-y border-white/10 py-4">
+              @if (play.currentTurnUserId === null) {
+                <p class="text-sm text-white/60">Round complete. Preparing the next round...</p>
+              } @else if (isMyTurn()) {
+                <p class="text-sm font-medium text-(--mat-sys-primary)">It's your turn!</p>
+                <p class="mt-1 text-sm text-white/50">Add the next sentence to the story.</p>
+              } @else {
+                <p class="text-sm text-white/70">
+                  {{ currentTurnPlayer()?.displayName ?? 'Another player' }}
+                  is cooking a line...
+                </p>
+                <p class="mt-1 text-sm text-white/40">Your turn will come up soon.</p>
+              }
+            </div>
+
+            <!-- Sentence input -->
+            @if (isMyTurn()) {
+              <div class="mt-6">
+                <label for="sentence" class="mb-2 block text-sm font-medium"> Your sentence </label>
+
+                <textarea
+                  id="sentence"
+                  rows="3"
+                  [value]="sentenceText()"
+                  (input)="sentenceText.set($any($event.target).value)"
+                  [maxLength]="play.maxSentenceLength"
+                  [disabled]="submittingSentence()"
+                  placeholder="What happens next?"
+                  class="w-full resize-y rounded-lg border border-white/15 bg-transparent px-4 py-3 text-sm outline-none transition-colors focus:border-(--mat-sys-primary) disabled:opacity-50"
+                ></textarea>
+
+                <div class="mt-2 flex items-center justify-between gap-3">
+                  <span class="text-xs text-white/40">
+                    {{ sentenceText().length }} /
+                    {{ play.maxSentenceLength }}
+                  </span>
+
+                  <button
+                    mat-flat-button
+                    type="button"
+                    [disabled]="
+                      !sentenceText().trim() ||
+                      sentenceText().trim().length > play.maxSentenceLength ||
+                      submittingSentence()
+                    "
+                    (click)="submitSentence()"
+                  >
+                    <mat-icon>send</mat-icon>
+                    {{ submittingSentence() ? 'Submitting...' : 'Submit sentence' }}
+                  </button>
+                </div>
+
+                @if (sentenceError()) {
+                  <p class="mt-3 text-sm text-red-400">
+                    {{ sentenceError() }}
+                  </p>
+                }
+              </div>
+            }
+          } @else {
+            <h2 class="text-xl font-semibold">Story complete</h2>
+            <p class="mt-1 text-sm text-white/50">
+              All rounds are finished. Here's the story you created together.
+            </p>
+          }
+          <!-- Continuous story, with one paragraph per round -->
+          <div class="mt-10">
+            <h3 class="text-lg font-semibold">Story so far</h3>
+            <p class="mt-1 text-sm text-white/45">Every sentence becomes part of the story.</p>
+
+            @if (game()?.storyName) {
+              <div class="flex items-center justify-between gap-3 mt-4">
+                <h2 class="text-xl font-semibold">{{ game()?.storyName }}</h2>
+
+                @if (
+                  game()?.ownerUserId === currentUser()?.id && game()?.status === 'IN_PROGRESS'
+                ) {
+                  <button mat-button type="button" (click)="renameStory()">
+                    <mat-icon>edit</mat-icon>
+                    Rename Story
+                  </button>
+                }
+              </div>
+            }
+
+            @if (gamePlay(); as play) {
+              @if (play.sentences.length === 0) {
+                <p class="mt-5 text-sm text-white/45">
+                  The story is waiting for its first sentence.
+                </p>
+              } @else {
+                <div class="mt-5 space-y-5 border-l-2 border-(--mat-sys-primary)/50 pl-4">
+                  @for (paragraph of storyParagraphs(); track paragraph.roundNumber) {
+                    <p class="whitespace-pre-wrap wrap-break-word text-base leading-8">
+                      {{ paragraph.text }}
+                    </p>
+                  }
+                </div>
+              }
+            }
+          </div>
+
+          @if (gameplayError()) {
+            <p class="mt-4 text-sm text-red-400">
+              {{ gameplayError() }}
+            </p>
+          }
+        } @else {
+          <p class="mt-6 text-sm text-white/50">Loading story...</p>
+
+          @if (gameplayError()) {
+            <p class="mt-3 text-sm text-red-400">
+              {{ gameplayError() }}
+            </p>
+          }
+        }
+      </section>
+    }
+  }
+
+  <!-- Actions -->
+  @if (game(); as currentGame) {
+    <section class="mt-10 border-white/10 pt-8">
+      <div class="rounded-xl border border-white/10 px-5 py-5">
+        <p class="text-center text-sm text-white/45">
+          @if (currentGame.status === 'WAITING') {
+            Share the game code with your friends.
+          } @else if (currentGame.status === 'IN_PROGRESS') {
+            Enjoy building the story together.
+          } @else {
+            This game is no longer active.
+          }
+        </p>
+
+        <!-- Host actions -->
+        @if (currentGame.ownerUserId === currentUser()?.id) {
+          @if (currentGame.status === 'WAITING') {
+            <div class="mt-5">
+              <button
+                mat-flat-button
+                type="button"
+                class="w-full!"
+                [disabled]="currentGame.players.length < 3 || starting()"
+                (click)="startGame()"
+              >
+                <mat-icon>play_arrow</mat-icon>
+                {{ starting() ? 'Starting...' : 'Start Game' }}
+              </button>
+
+              @if (currentGame.players.length < 3) {
+                <p class="mt-2 text-center text-xs text-white/40">
+                  Waiting for at least 3 players.
+                </p>
+              }
+            </div>
+          }
+
+          @if (currentGame.status === 'WAITING' || currentGame.status === 'IN_PROGRESS') {
+            <div class="mt-4 flex justify-center">
+              <button mat-stroked-button type="button" [disabled]="ending()" (click)="endGame()">
+                <mat-icon>stop_circle</mat-icon>
+                {{ ending() ? 'Ending...' : 'End Game' }}
+              </button>
+            </div>
+          }
+
+          @if (endError()) {
+            <p class="mt-4 text-center text-sm text-red-400">
+              {{ endError() }}
+            </p>
+          }
+        } @else {
+          <!-- Non-host actions -->
+          @if (currentGame.status === 'WAITING' || currentGame.status === 'IN_PROGRESS') {
+            <div class="mt-5 flex justify-center">
+              <button mat-stroked-button type="button" [disabled]="leaving()" (click)="leaveGame()">
+                <mat-icon>exit_to_app</mat-icon>
+                {{ leaving() ? 'Leaving...' : 'Leave Game' }}
+              </button>
+            </div>
+          }
+
+          @if (leaveError()) {
+            <p class="mt-4 text-center text-sm text-red-400">
+              {{ leaveError() }}
+            </p>
+          }
+        }
+      </div>
+    </section>
+  }
+</div>
