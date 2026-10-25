@@ -58,8 +58,6 @@ export interface PastGameResponse {
   providedIn: 'root',
 })
 export class Game {
-  // private readonly baseUrl = 'http://localhost:8082/api/games';
-
   private readonly baseUrl = 'http://localhost:8080/api/games';
 
   private readonly http = inject(HttpClient);

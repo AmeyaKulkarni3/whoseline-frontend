@@ -41,7 +41,7 @@ export class DevAuthService {
 
     try {
       const response = await firstValueFrom(
-        this.http.post<DevLoginResponse>('http://localhost:8083/dev/auth/login', { userId }),
+        this.http.post<DevLoginResponse>('http://localhost:8080/dev/auth/login', { userId }),
       );
 
       sessionStorage.setItem(this.devUserTokenKey, response.accessToken);

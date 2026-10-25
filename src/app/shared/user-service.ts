@@ -24,7 +24,7 @@ export class UserService {
       return;
     }
 
-    this.http.get<UserProfile>('http://localhost:8083/api/users/me').subscribe({
+    this.http.get<UserProfile>('http://localhost:8080/api/users/me').subscribe({
       next: (user) => this.currentUser.set(user),
     });
   }
